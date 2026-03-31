@@ -9,6 +9,8 @@ A lightweight web-based multi-window terminal for **local development**. Run mul
 [![Node.js](https://img.shields.io/node/v/@jacksontian/mwt)](https://nodejs.org)
 [![License](https://img.shields.io/npm/l/@jacksontian/mwt)](LICENSE)
 
+## Layouts
+
 ### Columns
 
 ![Columns](./figures/columns.png)

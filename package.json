@@ -42,5 +42,14 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public"
-  }
+  },
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "github.com:JacksonTian/multi-window-terminal.git"
+  },
+  "author": "Jackson Tian"
 }
