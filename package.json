@@ -1,0 +1,46 @@
+{
+  "name": "@jacksontian/mwt",
+  "version": "1.3.0",
+  "description": "Multi-window terminal with columns, grid, and tab layouts",
+  "type": "module",
+  "bin": {
+    "mwt": "bin/mwt.js"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "public/"
+  ],
+  "keywords": [
+    "terminal",
+    "xterm",
+    "multi-window",
+    "web-terminal"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "test": "mocha",
+    "cov": "c8 mocha",
+    "cov:report": "c8 report --reporter=text --reporter=html",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "node-pty": "^1.2.0-beta.12",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "c8": "^11.0.0",
+    "eslint": "^10.1.0",
+    "globals": "^17.4.0",
+    "mocha": "^11.7.5"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  }
+}

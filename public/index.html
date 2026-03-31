@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multi-Window Terminal</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="stylesheet" href="/vendor/xterm/xterm.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div id="toolbar">
+    <div class="toolbar-left">
+      <button id="btn-new-terminal" data-i18n-title="newTerminalTooltip">
+        <span class="btn-icon">+</span> <span data-i18n="newTerminal">New Terminal</span>
+      </button>
+    </div>
+    <div class="toolbar-center">
+      <div class="layout-switcher">
+        <button class="layout-btn active" data-layout="columns" data-i18n-title="columns">
+          <svg width="16" height="16" viewBox="0 0 16 16"><rect x="1" y="2" width="6" height="12" rx="1" fill="currentColor" opacity="0.8"/><rect x="9" y="2" width="6" height="12" rx="1" fill="currentColor" opacity="0.5"/></svg>
+          <span data-i18n="columns">Columns</span>
+        </button>
+        <button class="layout-btn" data-layout="rows" data-i18n-title="rows">
+          <svg width="16" height="16" viewBox="0 0 16 16"><rect x="1" y="2" width="14" height="5" rx="1" fill="currentColor" opacity="0.8"/><rect x="1" y="9" width="14" height="5" rx="1" fill="currentColor" opacity="0.5"/></svg>
+          <span data-i18n="rows">Rows</span>
+        </button>
+        <button class="layout-btn" data-layout="grid" data-i18n-title="grid">
+          <svg width="16" height="16" viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" rx="1" fill="currentColor" opacity="0.8"/><rect x="9" y="1" width="6" height="6" rx="1" fill="currentColor" opacity="0.5"/><rect x="1" y="9" width="6" height="6" rx="1" fill="currentColor" opacity="0.5"/><rect x="9" y="9" width="6" height="6" rx="1" fill="currentColor" opacity="0.3"/></svg>
+          <span data-i18n="grid">Grid</span>
+        </button>
+        <button class="layout-btn" data-layout="tabs" data-i18n-title="tabs">
+          <svg width="16" height="16" viewBox="0 0 16 16"><rect x="1" y="4" width="14" height="11" rx="1" fill="currentColor" opacity="0.3"/><rect x="1" y="2" width="6" height="4" rx="1" fill="currentColor" opacity="0.8"/><rect x="8" y="2" width="4" height="4" rx="1" fill="currentColor" opacity="0.4"/></svg>
+          <span data-i18n="tabs">Tabs</span>
+        </button>
+      </div>
+    </div>
+    <div class="toolbar-right">
+      <a id="btn-github-watch" href="https://github.com/JacksonTian/multi-window-terminal" target="_blank" rel="noopener" title="Watch on GitHub">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3C4.5 3 1.5 8 1.5 8s3 5 6.5 5 6.5-5 6.5-5-3-5-6.5-5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.4"/></svg>
+      </a>
+      <a id="btn-github-star" href="https://github.com/JacksonTian/multi-window-terminal" target="_blank" rel="noopener" title="Star on GitHub">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5l1.545 3.13 3.455.502-2.5 2.436.59 3.44L8 9.387l-3.09 1.621.59-3.44L3 5.132l3.455-.502L8 1.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+      </a>
+      <div class="toolbar-divider"></div>
+      <div id="lang-dropdown">
+        <button id="btn-lang" title="Language">
+          <span id="btn-lang-label"></span>
+          <svg class="lang-chevron" viewBox="0 0 8 8" fill="none"><path d="M1 2.5l3 3 3-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div id="lang-menu"></div>
+      </div>
+      <button id="btn-shortcuts" data-i18n-title="shortcutsTooltip">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M4 7h1M7 7h1M10 7h1M4 9.5h8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </button>
+      <button id="btn-fullscreen" data-i18n-title="fullscreenTooltip">
+        <svg class="icon-enter-fs" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg class="icon-exit-fs" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 2v4H2M10 6h4V2M10 14v-4h4M6 10H2v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button id="btn-theme-toggle" data-i18n-title="toggleTheme">
+        <svg class="icon-sun" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="3.5" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.5v1.5M8 13v1.5M1.5 8H3M13 8h1.5M3.17 3.17l1.06 1.06M11.77 11.77l1.06 1.06M3.17 12.83l1.06-1.06M11.77 4.23l1.06-1.06" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <svg class="icon-moon" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M13.36 10.06A5.5 5.5 0 015.94 2.64a6 6 0 107.42 7.42z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      </button>
+      <button id="btn-settings" data-i18n-title="settings">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><line x1="1" y1="4" x2="15" y2="4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="1" y1="8" x2="15" y2="8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="1" y1="12" x2="15" y2="12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="5" cy="4" r="1.8" fill="currentColor" stroke="none"/><circle cx="10" cy="8" r="1.8" fill="currentColor" stroke="none"/><circle cx="6" cy="12" r="1.8" fill="currentColor" stroke="none"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div id="tab-bar" class="hidden"></div>
+
+  <div id="main-content">
+    <div id="terminal-container" class="layout-columns"></div>
+    <div id="empty-state" class="hidden">
+      <div class="empty-state-logo">⬛</div>
+      <div class="empty-state-app-name">Multi-Window Terminal</div>
+      <div class="empty-state-shortcuts">
+        <div class="empty-state-section" data-i18n="emptyStateShortcuts">Shortcuts</div>
+        <div class="empty-state-row"><span data-i18n="shortcutsNewTerminal">New Terminal</span><kbd>Ctrl+Alt+N</kbd></div>
+        <div class="empty-state-row"><span data-i18n="shortcutsCloseTerminal">Close Terminal</span><kbd>Ctrl+Alt+W</kbd></div>
+        <div class="empty-state-row"><span data-i18n="shortcutsNextTerminal">Next Terminal</span><kbd>Ctrl+Alt+→</kbd></div>
+        <div class="empty-state-row"><span data-i18n="shortcutsMaximizeTerminal">Maximize / Restore</span><kbd>Ctrl+Alt+M</kbd></div>
+        <div class="empty-state-row"><span data-i18n="shortcutsSwitchTerminal">Switch to 1–9</span><kbd>Alt+1~9</kbd></div>
+      </div>
+      <div class="empty-state-layouts">
+        <div class="empty-state-section" data-i18n="emptyStateLayouts">Layouts</div>
+        <div class="empty-state-layout-list" data-i18n="emptyStateLayoutList">Columns · Rows · Grid · Tabs</div>
+      </div>
+      <button id="btn-empty-new-terminal" data-i18n="newTerminal">New Terminal</button>
+    </div>
+  </div>
+
+  <div id="statusbar">
+    <div class="statusbar-left">
+      <span id="status-terminal-count"></span>
+    </div>
+    <div class="statusbar-right">
+      <span id="status-active-terminal"></span>
+    </div>
+  </div>
+
+  <div id="settings-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" data-i18n="settingsTitle">Settings</span>
+        <button id="btn-settings-close" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="settings-group">
+          <div class="settings-group-title" data-i18n="settingsFont">Font</div>
+          <div class="settings-row">
+            <label class="settings-label" for="input-font-size"><span data-i18n="settingsFontSize">Size</span> <span id="font-size-value"></span></label>
+            <input type="range" id="input-font-size" min="8" max="32" step="1">
+          </div>
+          <div class="settings-row">
+            <label class="settings-label" for="input-font-family" data-i18n="settingsFontFamily">Family</label>
+            <input type="text" id="input-font-family" class="settings-text-input" data-i18n-placeholder="settingsFontFamilyPlaceholder" placeholder="e.g. Menlo, monospace">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="shortcuts-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" data-i18n="shortcutsTitle">Keyboard Shortcuts</span>
+        <button id="btn-shortcuts-close" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="shortcut-group">
+          <div class="shortcut-group-title" data-i18n="shortcutsGroupTerminals">Terminals</div>
+          <div class="shortcut-row"><span class="shortcut-desc" data-i18n="shortcutsNewTerminal">New Terminal</span><kbd class="shortcut-key" data-shortcut="ctrl+alt+N"></kbd></div>
+          <div class="shortcut-row"><span class="shortcut-desc" data-i18n="shortcutsCloseTerminal">Close Terminal</span><kbd class="shortcut-key" data-shortcut="ctrl+alt+W"></kbd></div>
+          <div class="shortcut-row"><span class="shortcut-desc" data-i18n="shortcutsMaximizeTerminal">Maximize / Restore Terminal</span><kbd class="shortcut-key" data-shortcut="ctrl+alt+M"></kbd></div>
+        </div>
+        <div class="shortcut-group">
+          <div class="shortcut-group-title" data-i18n="shortcutsGroupNavigation">Navigation</div>
+          <div class="shortcut-row"><span class="shortcut-desc" data-i18n="shortcutsNextTerminal">Next Terminal</span><kbd class="shortcut-key" data-shortcut="ctrl+alt+→"></kbd></div>
+          <div class="shortcut-row"><span class="shortcut-desc" data-i18n="shortcutsPrevTerminal">Previous Terminal</span><kbd class="shortcut-key" data-shortcut="ctrl+alt+←"></kbd></div>
+          <div class="shortcut-row"><span class="shortcut-desc" data-i18n="shortcutsSwitchTerminal">Switch to Terminal 1–9</span><kbd class="shortcut-key" data-shortcut="alt+1~9"></kbd></div>
+        </div>
+        <div class="shortcut-group">
+          <div class="shortcut-group-title" data-i18n="shortcutsGroupWindow">Window</div>
+          <div class="shortcut-row"><span class="shortcut-desc" data-i18n="shortcutsToggleFullscreen">Toggle Fullscreen</span><kbd class="shortcut-key" data-shortcut="F11"></kbd></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/vendor/xterm/xterm.js"></script>
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>
