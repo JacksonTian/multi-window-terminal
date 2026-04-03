@@ -1,32 +1,44 @@
 {
   "name": "@jacksontian/mwt",
-  "version": "1.3.1",
-  "description": "Multi-window terminal with columns, grid, and tab layouts",
-  "type": "module",
-  "bin": {
-    "mwt": "bin/mwt.js"
-  },
-  "files": [
-    "bin/",
-    "lib/",
-    "public/"
-  ],
+  "version": "1.5.1",
+  "description": "Multi-window terminal with columns, rows, grid, and tab layouts",
   "keywords": [
     "terminal",
     "xterm",
     "multi-window",
     "web-terminal"
   ],
+  "homepage": "https://github.com/JacksonTian/multi-window-terminal#readme",
+  "bugs": {
+    "url": "https://github.com/JacksonTian/multi-window-terminal/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JacksonTian/multi-window-terminal.git"
+  },
   "license": "MIT",
+  "author": "Jackson Tian",
+  "type": "module",
+  "bin": {
+    "mwt": "bin/mwt.js"
+  },
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "public/",
+    "CHANGELOG.md",
+    "figures/"
+  ],
   "scripts": {
     "test": "mocha",
     "cov": "c8 mocha",
     "cov:report": "c8 report --reporter=text --reporter=html",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
-  },
-  "engines": {
-    "node": ">=18"
   },
   "dependencies": {
     "node-pty": "^1.2.0-beta.12",
@@ -39,17 +51,11 @@
     "globals": "^17.4.0",
     "mocha": "^11.7.5"
   },
+  "engines": {
+    "node": ">=24"
+  },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public"
-  },
-  "main": "index.js",
-  "directories": {
-    "lib": "lib"
-  },
-  "repository": {
-    "type": "git",
-    "url": "github.com:JacksonTian/multi-window-terminal.git"
-  },
-  "author": "Jackson Tian"
+  }
 }

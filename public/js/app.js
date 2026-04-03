@@ -22,8 +22,48 @@ const wsClient = new WSClient();
 const container = document.getElementById('terminal-container');
 const tabBar = document.getElementById('tab-bar');
 const emptyState = document.getElementById('empty-state');
+const minimizedBar = document.getElementById('minimized-bar');
 const statusTerminalCount = document.getElementById('status-terminal-count');
 const statusActiveTerminal = document.getElementById('status-active-terminal');
+
+function createMinimizedIcon(id) {
+  const icon = document.createElement('div');
+  icon.className = 'minimized-icon';
+  icon.dataset.id = id;
+
+  const titleEl = document.createElement('span');
+  titleEl.className = 'minimized-icon-title';
+  titleEl.textContent = terminalManager.getTitle(id);
+
+  const activityDot = document.createElement('span');
+  activityDot.className = 'minimized-icon-activity';
+
+  icon.appendChild(titleEl);
+  icon.appendChild(activityDot);
+
+  icon.addEventListener('click', () => {
+    terminalManager.restoreMinimized(id);
+  });
+
+  return icon;
+}
+
+function addMinimizedIcon(id) {
+  const icon = createMinimizedIcon(id);
+  const restoreAllBtn = document.getElementById('btn-restore-all');
+  minimizedBar.insertBefore(icon, restoreAllBtn);
+  minimizedBar.classList.remove('hidden');
+}
+
+function removeMinimizedIcon(id) {
+  const icon = minimizedBar.querySelector(`.minimized-icon[data-id="${id}"]`);
+  if (icon) {
+    icon.remove();
+  }
+  if (minimizedBar.querySelectorAll('.minimized-icon').length === 0) {
+    minimizedBar.classList.add('hidden');
+  }
+}
 
 function updateStatusBar() {
   const count = terminalManager.getCount();
@@ -33,11 +73,16 @@ function updateStatusBar() {
 }
 
 function updateEmptyState() {
-  emptyState.classList.toggle('hidden', terminalManager.getCount() > 0);
+  const visibleCount = terminalManager.getCount() - terminalManager.getMinimizedIds().length;
+  emptyState.classList.toggle('hidden', visibleCount > 0);
 }
 
 document.getElementById('btn-empty-new-terminal').addEventListener('click', () => {
   terminalManager.createTerminal();
+});
+
+document.getElementById('btn-restore-all').addEventListener('click', () => {
+  terminalManager.restoreAllMinimized();
 });
 
 const themeManager = new ThemeManager();
@@ -48,6 +93,12 @@ const terminalManager = new TerminalManager(wsClient, container, themeManager, c
 // Restore layout immediately (like theme/font) so it's consistent on page load
 const LAYOUT_KEY = 'mwt-layout';
 const ACTIVE_TAB_KEY = 'mwt-active-tab';
+const MINIMIZED_KEY = 'mwt-minimized';
+
+function saveMinimizedState() {
+  const ids = terminalManager.getMinimizedIds();
+  sessionStorage.setItem(MINIMIZED_KEY, JSON.stringify(ids));
+}
 {
   const savedLayout = localStorage.getItem(LAYOUT_KEY);
   if (savedLayout) {
@@ -135,6 +186,12 @@ const notificationCooldown = new Map(); // id -> timestamp
 const NOTIFICATION_DEBOUNCE_MS = 2000;
 
 terminalManager.onActivity((id, cleared) => {
+  // Update minimized icon activity state
+  const minIcon = minimizedBar.querySelector(`.minimized-icon[data-id="${id}"]`);
+  if (minIcon) {
+    minIcon.classList.toggle('has-activity', !cleared);
+  }
+
   if (cleared) {
     layoutManager.clearActivity(id);
     // If no more unread activity, stop title flash
@@ -208,6 +265,20 @@ terminalManager.onChange((event) => {
     layoutManager.onTerminalMaximized();
   } else if (event.type === 'restore') {
     layoutManager.onTerminalRestored();
+  } else if (event.type === 'minimize') {
+    addMinimizedIcon(event.id);
+    layoutManager.onMinimizeChanged();
+    terminalManager.fitAll();
+    updateEmptyState();
+    updateStatusBar();
+    saveMinimizedState();
+  } else if (event.type === 'restore-minimized') {
+    removeMinimizedIcon(event.id);
+    layoutManager.onMinimizeChanged();
+    terminalManager.fitAll();
+    updateEmptyState();
+    updateStatusBar();
+    saveMinimizedState();
   }
 });
 
@@ -327,6 +398,9 @@ document.querySelectorAll('.layout-btn').forEach(btn => {
     if (terminalManager.activeId) {
       layoutManager.activeTabId = terminalManager.activeId;
     }
+    if (btn.dataset.layout === 'tabs') {
+      terminalManager.restoreAllMinimized();
+    }
     layoutManager.setLayout(btn.dataset.layout);
     saveLayoutState();
   });
@@ -371,6 +445,17 @@ wsClient.onSessionRestore((terminalIds) => {
     // Restore existing terminals
     for (const id of terminalIds) {
       terminalManager.restoreTerminal(id);
+    }
+  }
+
+  // Restore minimized state from sessionStorage
+  const savedMinimized = sessionStorage.getItem(MINIMIZED_KEY);
+  if (savedMinimized) {
+    const minimizedIds = JSON.parse(savedMinimized);
+    for (const id of minimizedIds) {
+      if (terminalManager.terminals.has(id)) {
+        terminalManager.minimizeTerminal(id);
+      }
     }
   }
 

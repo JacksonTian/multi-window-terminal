@@ -254,7 +254,7 @@ body {
   background: var(--accent);
   margin-right: 6px;
   vertical-align: middle;
-  animation: activity-pulse 2s ease-in-out infinite;
+  animation: activity-pulse 1.2s ease-in-out infinite;
 }
 
 .terminal-pane.has-activity .pane-title::before {
@@ -266,18 +266,28 @@ body {
   background: var(--accent);
   margin-right: 6px;
   vertical-align: middle;
-  animation: activity-pulse 2s ease-in-out infinite;
+  animation: activity-pulse 1.2s ease-in-out infinite;
+}
+
+.terminal-pane.has-activity .pane-header {
+  animation: activity-header-pulse 1.2s ease-in-out infinite;
 }
 
 @keyframes activity-pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  50% { opacity: 0.2; }
+}
+
+@keyframes activity-header-pulse {
+  0%, 100% { background: color-mix(in srgb, var(--accent) 45%, var(--pane-header)); }
+  50% { background: var(--pane-header); }
 }
 
 /* ========== Main Content ========== */
 #main-content {
   position: relative;
   display: flex;
+  flex-direction: column;
   flex: 1;
   overflow: hidden;
 }
@@ -516,8 +526,6 @@ body {
 }
 
 .empty-state-logo {
-  font-size: 40px;
-  opacity: 0.4;
 }
 
 .empty-state-app-name {
@@ -579,6 +587,111 @@ body {
 
 #btn-empty-new-terminal:hover {
   background: var(--bg-hover);
+}
+
+/* ========== Minimized Bar (inside statusbar) ========== */
+#minimized-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+#minimized-bar.hidden {
+  display: none;
+}
+
+.minimized-icon {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 6px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.minimized-icon:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.minimized-icon.has-activity {
+  border-color: var(--accent);
+}
+
+.minimized-icon-title {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.minimized-icon-activity {
+  display: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.minimized-icon.has-activity .minimized-icon-activity {
+  display: block;
+}
+
+.terminal-pane.minimized {
+  display: none;
+}
+
+
+#btn-restore-all {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+#btn-restore-all:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Minimize button in pane header */
+.pane-minimize {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pane-minimize:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Hide minimize button in tabs layout */
+.layout-tabs .pane-minimize {
+  display: none;
 }
 
 /* ========== Scrollbar ========== */

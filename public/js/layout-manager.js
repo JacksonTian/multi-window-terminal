@@ -244,8 +244,14 @@ export class LayoutManager {
     }
   }
 
+  onMinimizeChanged() {
+    if (this.currentLayout === 'grid') {
+      this._updateGridColumns();
+    }
+  }
+
   _updateGridColumns() {
-    const count = this.container.querySelectorAll('.terminal-pane').length;
+    const count = this.container.querySelectorAll('.terminal-pane:not(.minimized)').length;
     const cols = Math.ceil(Math.sqrt(count));
     const rows = Math.ceil(count / cols);
     this.container.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;

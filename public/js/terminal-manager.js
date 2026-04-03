@@ -18,6 +18,8 @@ export class TerminalManager {
     this.activeId = null;
     this.changeCallbacks = [];
     this.activityCallbacks = [];
+    this._idleTimers = new Map(); // id -> timer, for idle-based activity detection
+    this._pendingActivity = new Set(); // ids that have received output but not yet gone idle
     this._dragManager = new DragManager((id1, id2) => this.swapTerminals(id1, id2));
     this.activitySet = new Set(); // terminal IDs with unread activity
     this._shortcutManager = null;
@@ -65,6 +67,15 @@ export class TerminalManager {
     const headerActions = document.createElement('div');
     headerActions.className = 'pane-actions';
 
+    const minimizeBtn = document.createElement('button');
+    minimizeBtn.className = 'pane-minimize';
+    minimizeBtn.title = this.i18n ? this.i18n.t('minimizeTerminal', this.cmdKey) : `Minimize terminal`;
+    minimizeBtn.textContent = '\u2212'; // − (minus sign)
+    minimizeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.minimizeTerminal(id);
+    });
+
     const maximizeBtn = document.createElement('button');
     maximizeBtn.className = 'pane-maximize';
     maximizeBtn.title = this.i18n ? this.i18n.t('maximizeTerminal', this.cmdKey) : `Maximize terminal (${this.cmdKey}+Shift+M)`;
@@ -84,6 +95,7 @@ export class TerminalManager {
       this.closeTerminal(id);
     });
 
+    headerActions.appendChild(minimizeBtn);
     headerActions.appendChild(maximizeBtn);
     headerActions.appendChild(closeBtn);
 
@@ -162,16 +174,37 @@ export class TerminalManager {
       }
     });
 
+    // Suppress idle detection briefly after resize to ignore PTY prompt redraws
+    let suppressIdleUntil = 0;
+    const RESIZE_SUPPRESS_MS = 500;
     term.onResize(({ cols, rows }) => {
+      suppressIdleUntil = Date.now() + RESIZE_SUPPRESS_MS;
       this.wsClient.resizeTerminal(id, cols, rows);
     });
 
     // Wire server -> xterm
+    // Notify only after output stops (idle detection), not on every byte.
+    const IDLE_DELAY_MS = 1500;
     this.wsClient.onTerminalData(id, (data) => {
+      const lineBefore = term.buffer.active.baseY + term.buffer.active.cursorY;
       term.write(data);
-      if (id !== this.activeId && !this.activitySet.has(id)) {
-        this.activitySet.add(id);
-        this._notifyActivity(id);
+      const lineAfter = term.buffer.active.baseY + term.buffer.active.cursorY;
+      const hasNewLines = lineAfter > lineBefore;
+      if (!muted && hasNewLines && Date.now() > suppressIdleUntil && id !== this.activeId && !this.activitySet.has(id)) {
+        // Mark as having pending output; reset idle timer on each new chunk
+        this._pendingActivity.add(id);
+        if (this._idleTimers.has(id)) {
+          clearTimeout(this._idleTimers.get(id));
+        }
+        const timer = setTimeout(() => {
+          this._idleTimers.delete(id);
+          if (this._pendingActivity.has(id)) {
+            this._pendingActivity.delete(id);
+            this.activitySet.add(id);
+            this._notifyActivity(id);
+          }
+        }, IDLE_DELAY_MS);
+        this._idleTimers.set(id, timer);
       }
     });
 
@@ -199,7 +232,7 @@ export class TerminalManager {
     const setMuted = (v) => {
       muted = v;
     };
-    this.terminals.set(id, { term, fitAddon, element: pane, resizeObserver, setMuted });
+    this.terminals.set(id, { term, fitAddon, element: pane, resizeObserver, setMuted, originalIndex: -1 });
     this._notifyChange({ type: 'add', id });
     this.setActiveTerminal(id);
     term.focus();
@@ -282,6 +315,11 @@ export class TerminalManager {
       for (const [, e] of this.terminals) {
         e.element.classList.remove('hidden-by-maximize');
       }
+    }
+
+    // If closing a minimized terminal, notify bar to remove its icon
+    if (entry.element.classList.contains('minimized')) {
+      this._notifyChange({ type: 'restore-minimized', id });
     }
 
     this.wsClient.closeTerminal(id);
@@ -482,6 +520,61 @@ export class TerminalManager {
     }
   }
 
+  minimizeTerminal(id) {
+    const entry = this.terminals.get(id);
+    if (!entry || entry.element.classList.contains('minimized')) {
+      return;
+    }
+
+    entry.element.classList.add('minimized');
+    this._notifyChange({ type: 'minimize', id });
+  }
+
+  restoreMinimized(id) {
+    const entry = this.terminals.get(id);
+    if (!entry || !entry.element.classList.contains('minimized')) {
+      return;
+    }
+
+    entry.element.classList.remove('minimized');
+    this._notifyChange({ type: 'restore-minimized', id });
+
+    requestAnimationFrame(() => {
+      try {
+        entry.fitAddon.fit();
+        entry.term.scrollToBottom();
+      } catch { /* ignore */ }
+    });
+  }
+
+  toggleMinimize(id) {
+    const entry = this.terminals.get(id);
+    if (!entry) return;
+    if (entry.element.classList.contains('minimized')) {
+      this.restoreMinimized(id);
+    } else {
+      this.minimizeTerminal(id);
+    }
+  }
+
+  restoreAllMinimized() {
+    for (const [id, entry] of this.terminals) {
+      if (entry.element.classList.contains('minimized')) {
+        this.restoreMinimized(id);
+      }
+    }
+  }
+
+  getMinimizedIds() {
+    const result = [];
+    for (const [id, entry] of this.terminals) {
+      if (entry.element.classList.contains('minimized')) {
+        result.push(id);
+      }
+    }
+    return result;
+  }
+
   onChange(callback) {
     this.changeCallbacks.push(callback);
   }
@@ -491,6 +584,12 @@ export class TerminalManager {
   }
 
   clearActivity(id) {
+    // Cancel any pending idle timer so a re-focus before idle fires won't trigger notification
+    if (this._idleTimers.has(id)) {
+      clearTimeout(this._idleTimers.get(id));
+      this._idleTimers.delete(id);
+    }
+    this._pendingActivity.delete(id);
     if (this.activitySet.delete(id)) {
       this._notifyActivity(id, true);
     }

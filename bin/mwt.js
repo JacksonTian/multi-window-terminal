@@ -20,7 +20,7 @@ if (values.help) {
     mwt [options]
 
   Options:
-    -p, --port <port>  Port to listen on (default: 1987)
+    -p, --port <port>  Port to listen on (default: 1987), use "random" for a random available port
     --host <host>      Host to bind to (default: 127.0.0.1)
     --no-open          Do not open the browser automatically
     -h, --help         Show this help message
@@ -30,16 +30,22 @@ if (values.help) {
 
 import {start} from '../lib/server.js';
 
-const port = Number(values.port);
-if (!Number.isInteger(port) || port < 1 || port > 65535) {
-  console.error(`
-  mwt: invalid port "${values.port}" — must be an integer between 1 and 65535.
+let port;
+if (values.port === 'random') {
+  port = 0;
+} else {
+  port = Number(values.port);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    console.error(`
+  mwt: invalid port "${values.port}" — must be an integer between 1 and 65535, or "random".
 
   Options:
     Use the default port:         mwt
     Specify a valid port:         mwt -p 1987
+    Use a random available port:  mwt -p random
 `);
-  process.exit(1);
+    process.exit(1);
+  }
 }
 
 start(port, values.host, { open: values.open });

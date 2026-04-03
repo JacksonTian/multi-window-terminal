@@ -72,7 +72,7 @@
   <div id="main-content">
     <div id="terminal-container" class="layout-columns"></div>
     <div id="empty-state" class="hidden">
-      <div class="empty-state-logo">⬛</div>
+      <div class="empty-state-logo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="40" height="40"><rect width="32" height="32" rx="6" fill="#1e1e2e"/><path d="M8 22l6-6-6-6" stroke="#50fa7b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><line x1="17" y1="22" x2="24" y2="22" stroke="#50fa7b" stroke-width="2.5" stroke-linecap="round"/></svg></div>
       <div class="empty-state-app-name">Multi-Window Terminal</div>
       <div class="empty-state-shortcuts">
         <div class="empty-state-section" data-i18n="emptyStateShortcuts">Shortcuts</div>
@@ -92,6 +92,9 @@
 
   <div id="statusbar">
     <div class="statusbar-left">
+      <div id="minimized-bar" class="hidden">
+        <button id="btn-restore-all" title="Restore all minimized terminals"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M2 11l6-6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
       <span id="status-terminal-count"></span>
     </div>
     <div class="statusbar-right">
